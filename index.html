@@ -19,7 +19,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: flex-start; /* 置頂 */
   }
   header {
     color: #4B2E2E; /* deep brown */
@@ -27,11 +27,12 @@
     font-weight: bold;
     margin-bottom: 10px;
   }
+  /* 置頂：仍然水平置中，但不再垂直置中 */
   .table-wrap {
     flex: 1;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;   /* 👈 置頂 */
+    justify-content: center;   /* 水平置中 */
     width: 100%;
   }
   table {
@@ -48,14 +49,13 @@
     background: #fff;
     color: #4B2E2E;             /* 深啡色字 */
     padding: 0;
-    width: 50px;
-    height: 50px;
+    width: 50px;  /* JS 覆蓋 */
+    height: 50px; /* JS 覆蓋 */
     white-space: nowrap;
     transition: background 0.15s;
   }
-  td:active {
-    background: #D7BFA3;        /* 淺啡色按下效果 */
-  }
+  td:active { background: #D7BFA3; }  /* 淺啡色按下 */
+
   .render-ie2 {
     display: inline-flex;
     align-items: center;
@@ -66,6 +66,16 @@
     width: auto;
     vertical-align: middle;
   }
+
+  /* “ought” 橫向收窄 80%（非縮細） */
+/* “ought” 橫向收窄 80%，並微移向左以置中 */
+.condense {
+  display: inline-block;
+  transform: scaleX(0.75);
+  transform-origin: 17% center;  /* 👈 從中間偏右10%，令整體稍向左移 */
+}
+
+  /* 隱形量度用（用同樣的 condense 規則） */
   .measure {
     position: absolute;
     visibility: hidden;
@@ -81,7 +91,8 @@
     <table id="phonicsTable"></table>
   </div>
 
-  <span id="measure" class="measure">ought</span>
+  <!-- 隱形量度元素：套用 condense 令量度與實際一致 -->
+  <span id="measure" class="measure condense">ought</span>
 
 <script>
   const AUDIO_PATH = 'audio/';
@@ -107,6 +118,12 @@
       const span = document.createElement('span');
       span.className = 'render-ie2';
       span.innerHTML = `<span>i</span><img src="${IMAGES_PATH}red.png" alt="red"/><span>e</span>`;
+      return span;
+    }
+    if (name === 'ought') {
+      const span = document.createElement('span');
+      span.className = 'condense';
+      span.textContent = 'ought';
       return span;
     }
     return document.createTextNode(name);
@@ -135,12 +152,12 @@
     player.play().catch(()=>{});
   });
 
-  // ======= 保持每格正方形 + 字體以 "ought" 為上限 =======
+  // ======= 保持正方格 + 用「收窄後的 'ought'」做字體上限 =======
   function adjustSquareCells() {
     const wrap = document.querySelector('.table-wrap');
     const availableW = wrap.clientWidth;
     const availableH = wrap.clientHeight;
-    const border = 1;
+
     const sizeAll = Math.floor(Math.min(availableW, availableH) / N);
     const size = Math.max(8, sizeAll);
     const cellSide = size;
@@ -151,8 +168,9 @@
       td.style.width = td.style.height = cellSide + 'px';
     });
 
+    // 量度「已收窄 80% 的 'ought'」
     const measure = document.getElementById('measure');
-    let lo = 8, hi = Math.floor(cellSide * 0.9), best = 8;
+    let lo = 8, hi = Math.floor(cellSide * 0.95), best = 8; // 放寬上限到 95%
     const tdStyle = window.getComputedStyle(table.querySelector('td'));
     measure.style.fontFamily = tdStyle.fontFamily;
     measure.style.fontWeight = tdStyle.fontWeight;
@@ -165,9 +183,9 @@
       const w = measure.getBoundingClientRect().width;
       const h = measure.getBoundingClientRect().height;
       if (w <= cellSide - 4 && h <= cellSide - 4) {
-        best = mid; lo = mid + 1;
+        best = mid; lo = mid + 1;   // OK → 試大啲
       } else {
-        hi = mid - 1;
+        hi = mid - 1;               // 太大 → 細啲
       }
     }
     document.documentElement.style.setProperty('--cellFont', best + 'px');
