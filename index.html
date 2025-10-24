@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Phonics Chart</title>
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 30px;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+  body {
+    background: #fff;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Arial, "PingFang HK", "Microsoft JhengHei", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  header {
+    color: #4B2E2E; /* deep brown */
+    font-size: clamp(20px, 3vw, 28px);
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    height: calc(100% - 60px);
+    table-layout: fixed;
+  }
+  td {
+    border: 1px solid #000;
+    text-align: center;
+    vertical-align: middle;
+    font-size: clamp(12px, 2.2vw, 24px);
+    cursor: pointer;
+    user-select: none;
+    background: #fff;
+    padding: 0;
+  }
+  td:active {
+    background: #ffeaea;
+  }
+  .render-ie2 {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .render-ie2 img {
+    height: 1.1em;
+    width: auto;
+    vertical-align: middle;
+  }
+</style>
+
+<body>
+  <header>Phonics Chart</header>
+  <table id="phonicsTable"></table>
+
+<script>
+  const AUDIO_PATH = 'audio/';
+  const IMAGES_PATH = 'images/';
+
+  const rows = [
+    ["a","b","c","d","e","f","g","h","i","j","k"],
+    ["l","m","n","o","p","r","s","t","u","v","w"],
+    ["x","y","z","sh","ch","tch","th","ph","sk","sc","st"],
+    ["sp","ic","ig","ix","eg","a_e","e_e","i_e","i_e2","o_e","u_e"],
+    ["lu_e","ru_e","ju_e","kn","ng","ing","ink","qu","gu","wh","wr"],
+    ["ie","-ie","ea","ee","ue","ir","er","ur","ar","or","ei"],
+    ["ai","oi","ew","lew","rew","ay","oy","ey","au","aw","wa"],
+    ["al","old","oa","ild","ind","oo","ook","ow","eer","ear","-ear"],
+    ["-y","-ey","ci","cy","ce","ge","-ge","dge","gh","igh","ight"],
+    ["ought","ou","wor","oar","are","air","war","ire","-or","-er","-ar"],
+    ["-a","tion","sion","-o","-ow","-el","-al","-le","ture"]
+  ];
+
+  function renderLabel(name) {
+    if (name === 'i_e2') {
+      const span = document.createElement('span');
+      span.className = 'render-ie2';
+      span.innerHTML = `<span>i</span><img src="${IMAGES_PATH}red.png" alt="red"/><span>e</span>`;
+      return span;
+    }
+    return document.createTextNode(name);
+  }
+
+  const table = document.getElementById('phonicsTable');
+  rows.forEach(rowData => {
+    const tr = document.createElement('tr');
+    rowData.forEach(name => {
+      const td = document.createElement('td');
+      td.dataset.name = name;
+      td.appendChild(renderLabel(name));
+      tr.appendChild(td);
+    });
+    table.appendChild(tr);
+  });
+
+  const player = new Audio();
+  player.preload = 'none';
+  table.addEventListener('click', e => {
+    const cell = e.target.closest('td');
+    if (!cell || !cell.dataset.name) return;
+    player.src = `${AUDIO_PATH}${cell.dataset.name}.mp3`;
+    player.currentTime = 0;
+    player.play().catch(()=>{});
+  });
+</script>
+</body>
+</html>
