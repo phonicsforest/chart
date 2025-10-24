@@ -39,32 +39,33 @@
     table-layout: fixed;
   }
   td {
-    border: 1px solid #000;
+    border: 1px solid #4B2E2E;   /* 深啡色框線 */
     text-align: center;
     vertical-align: middle;
-    font-size: var(--cellFont);      /* 👈 由 JS 按 “ought” 自動設定 */
+    font-size: var(--cellFont);
     cursor: pointer;
     user-select: none;
     background: #fff;
+    color: #4B2E2E;             /* 深啡色字 */
     padding: 0;
-    width: 50px;  /* 初始值，JS 會覆蓋 */
-    height: 50px; /* 初始值，JS 會覆蓋 */
-    white-space: nowrap;             /* 不換行，避免穿格 */
+    width: 50px;
+    height: 50px;
+    white-space: nowrap;
+    transition: background 0.15s;
   }
-  td:active { background: #ffeaea; }
-
+  td:active {
+    background: #D7BFA3;        /* 淺啡色按下效果 */
+  }
   .render-ie2 {
     display: inline-flex;
     align-items: center;
     gap: 4px;
   }
   .render-ie2 img {
-    height: 1em;     /* 跟字高一致，會隨 --cellFont 變化 */
+    height: 1em;
     width: auto;
     vertical-align: middle;
   }
-
-  /* 隱形量度用 */
   .measure {
     position: absolute;
     visibility: hidden;
@@ -80,13 +81,12 @@
     <table id="phonicsTable"></table>
   </div>
 
-  <!-- 隱形量度元素 -->
   <span id="measure" class="measure">ought</span>
 
 <script>
   const AUDIO_PATH = 'audio/';
   const IMAGES_PATH = 'images/';
-  const N = 11; // 每行格數
+  const N = 11;
 
   const rows = [
     ["a","b","c","d","e","f","g","h","i","j","k"],
@@ -135,54 +135,41 @@
     player.play().catch(()=>{});
   });
 
-  // ======= 關鍵：保持每格正方形 + 字體以 "ought" 為上限 =======
+  // ======= 保持每格正方形 + 字體以 "ought" 為上限 =======
   function adjustSquareCells() {
     const wrap = document.querySelector('.table-wrap');
     const availableW = wrap.clientWidth;
     const availableH = wrap.clientHeight;
-
-    // 邊框也會佔寬，預留 1px 緩衝（每條線 1px、11 格有 12 條線）
     const border = 1;
-    const gridLines = (N + 1) * border;
-
-    // 計每格邊長（含邊框），再扣回邊框得到 cell 內容邊長
     const sizeAll = Math.floor(Math.min(availableW, availableH) / N);
-    const size = Math.max(8, sizeAll); // 每格含邊框的實際尺寸
-    const cellSide = size;             // 我們直接把 td 的寬高設成 size（包含邊線）
+    const size = Math.max(8, sizeAll);
+    const cellSide = size;
 
-    // 套用到表
     table.style.width = (size * N) + 'px';
     table.style.height = (size * N) + 'px';
     table.querySelectorAll('td').forEach(td => {
       td.style.width = td.style.height = cellSide + 'px';
     });
 
-    // === 用隱形元素量度 "ought" 的寬高，找出最大可用字體 ===
     const measure = document.getElementById('measure');
-    // 二分找最大字體：下限 8px，上限為 cellSide 的 90%（安全）
     let lo = 8, hi = Math.floor(cellSide * 0.9), best = 8;
-
-    // 用與 td 相同字體、同字距等去量度
     const tdStyle = window.getComputedStyle(table.querySelector('td'));
     measure.style.fontFamily = tdStyle.fontFamily;
     measure.style.fontWeight = tdStyle.fontWeight;
     measure.style.letterSpacing = tdStyle.letterSpacing;
-    measure.style.lineHeight = "1"; // 盡量緊貼避免超高
+    measure.style.lineHeight = "1";
 
     while (lo <= hi) {
       const mid = Math.floor((lo + hi) / 2);
       measure.style.fontSize = mid + 'px';
-      // 小緩衝，避免貼邊：左右 2px、上下 2px
       const w = measure.getBoundingClientRect().width;
       const h = measure.getBoundingClientRect().height;
       if (w <= cellSide - 4 && h <= cellSide - 4) {
-        best = mid; lo = mid + 1;   // 可以放得落，試更大
+        best = mid; lo = mid + 1;
       } else {
-        hi = mid - 1;               // 放唔落，縮細
+        hi = mid - 1;
       }
     }
-
-    // 設定整表字體（i_e2 圖會跟 1em 一齊縮）
     document.documentElement.style.setProperty('--cellFont', best + 'px');
   }
 
